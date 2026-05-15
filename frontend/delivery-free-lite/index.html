@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html class="no-js" lang="">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>MY-E-Village</title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicon.png"/>
+    <link rel="stylesheet" href="assets/css/bootstrap-5.0.0-alpha-2.min.css" />
+    <link rel="stylesheet" href="assets/css/LineIcons.2.0.css" />
+    <link rel="stylesheet" href="assets/css/animate.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <style>
+      /* ── Auth Buttons in Navbar ── */
+      .navbar-auth { display: flex; align-items: center; gap: 10px; margin-left: 20px; }
+      .btn-login {
+        background: transparent;
+        border: 2px solid #f97316;
+        color: #f97316;
+        padding: 7px 20px;
+        border-radius: 5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 14px;
+      }
+      .btn-login:hover { background: #f97316; color: #fff; }
+      .btn-register {
+        background: #f97316;
+        border: 2px solid #f97316;
+        color: #fff;
+        padding: 7px 20px;
+        border-radius: 5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 14px;
+      }
+      .btn-register:hover { background: #ea6a00; border-color: #ea6a00; }
+
+      /* ── User Menu (shown after login) ── */
+      .user-menu { display: none; align-items: center; gap: 10px; margin-left: 20px; }
+      .user-welcome {
+        color: #f97316;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .btn-logout {
+        background: transparent;
+        border: 2px solid #dc3545;
+        color: #dc3545;
+        padding: 7px 18px;
+        border-radius: 5px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+      }
+      .btn-logout:hover { background: #dc3545; color: #fff; }
+
+      /* ── Modal Overlay ── */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-overlay.active { display: flex; }
+      .modal-box {
+        background: #1e1e2e;
+        border-radius: 16px;
+        padding: 40px;
+        width: 100%;
+        max-width: 440px;
+        position: relative;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        animation: fadeInUp 0.3s ease;
+      }
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .modal-box h2 {
+        color: #fff;
+        font-size: 26px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .modal-box p.subtitle {
+        color: #aaa;
+        font-size: 14px;
+        margin-bottom: 24px;
+      }
+      .modal-close {
+        position: absolute;
+        top: 16px; right: 20px;
+        background: none;
+        border: none;
+        color: #aaa;
+        font-size: 22px;
+        cursor: pointer;
+        transition: color 0.2s;
+      }
+      .modal-close:hover { color: #fff; }
+
+      /* ── Form Inputs ── */
+      .form-group { margin-bottom: 18px; }
+      .form-group label {
+        display: block;
+        color: #ccc;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 12px 16px;
+        background: #2a2a3e;
+        border: 1px solid #3a3a55;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s;
+        box-sizing: border-box;
+      }
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus { border-color: #f97316; }
+      .form-group select option { background: #2a2a3e; }
+      .form-group textarea { resize: vertical; min-height: 90px; }
+      .form-row { display: flex; gap: 14px; }
+      .form-row .form-group { flex: 1; }
+
+      /* ── Submit Button ── */
+      .btn-submit {
+        width: 100%;
+        padding: 13px;
+        background: linear-gradient(135deg, #f97316, #ea6a00);
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.3s;
+        margin-top: 6px;
+      }
+      .btn-submit:hover { opacity: 0.9; }
+      .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+      /* ── Alert messages ── */
+      .alert-msg {
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        margin-bottom: 16px;
+        display: none;
+      }
+      .alert-msg.success { background: #1a3a2a; color: #4ade80; border: 1px solid #4ade80; display: block; }
+      .alert-msg.error   { background: #3a1a1a; color: #f87171; border: 1px solid #f87171; display: block; }
+
+      /* ── Switch link ── */
+      .switch-link { text-align: center; margin-top: 18px; color: #aaa; font-size: 13px; }
+      .switch-link a { color: #f97316; cursor: pointer; font-weight: 600; text-decoration: none; }
+      .switch-link a:hover { text-decoration: underline; }
+
+      /* ── Donation / Contact Sections ── */
+      #donate { padding: 80px 0; background: #f9f9f9; }
+      #contact-section { padding: 80px 0; background: #fff; }
+      .section-header { text-align: center; margin-bottom: 50px; }
+      .section-header span {
+        display: inline-block;
+        background: #fff3e8;
+        color: #f97316;
+        padding: 6px 16px;
+        border-radius: 30px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 14px;
+      }
+      .section-header h2 { font-size: 36px; font-weight: 700; color: #1e1e2e; margin-bottom: 14px; }
+      .section-header p { color: #666; max-width: 550px; margin: 0 auto; }
+
+      /* ── Donation Cards ── */
+      .donate-cards { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+      .donate-card {
+        background: #fff;
+        border: 2px solid #eee;
+        border-radius: 12px;
+        padding: 24px;
+        width: 180px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .donate-card:hover,
+      .donate-card.selected { border-color: #f97316; background: #fff8f3; }
+      .donate-card .amount { font-size: 28px; font-weight: 800; color: #f97316; }
+      .donate-card .label  { font-size: 12px; color: #888; margin-top: 4px; }
+
+      .donate-form-wrap {
+        max-width: 540px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 16px;
+        padding: 36px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+      }
+      .donate-form-wrap .form-group label { color: #555; }
+      .donate-form-wrap .form-group input,
+      .donate-form-wrap .form-group select { background: #f9f9f9; color: #333; border: 1px solid #ddd; }
+      .donate-form-wrap .form-group input:focus,
+      .donate-form-wrap .form-group select:focus { border-color: #f97316; }
+      .donate-form-wrap .alert-msg.success { background: #f0fff4; }
+      .donate-form-wrap .alert-msg.error   { background: #fff0f0; }
+
+      /* ── Contact Form ── */
+      .contact-form-wrap {
+        max-width: 640px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 16px;
+        padding: 36px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+      }
+      .contact-form-wrap .form-group label { color: #555; }
+      .contact-form-wrap .form-group input,
+      .contact-form-wrap .form-group textarea { background: #f9f9f9; color: #333; border: 1px solid #ddd; }
+      .contact-form-wrap .form-group input:focus,
+      .contact-form-wrap .form-group textarea:focus { border-color: #f97316; }
+    </style>
+  </head>
+  <body>
+    <!-- Preloader -->
+    <div class="preloader">
+      <div class="loader">
+        <div class="ytp-spinner">
+          <div class="ytp-spinner-container">
+            <div class="ytp-spinner-rotator">
+              <div class="ytp-spinner-left"><div class="ytp-spinner-circle"></div></div>
+              <div class="ytp-spinner-right"><div class="ytp-spinner-circle"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         HEADER / NAVBAR
+    ═══════════════════════════════════════════ -->
+    <header class="header">
+      <div class="navbar-area">
+        <div class="container">
+          <div class="row align-items-center">
+            <div class="col-lg-12">
+              <nav class="navbar navbar-expand-lg">
+                <a class="navbar-brand" href="/">
+                  <img src="assets/img/logo/Gemini_Generated_Image_tttxdstttxdstttx.png" alt="Logo" />
+                </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+                  <span class="toggler-icon"></span>
+                  <span class="toggler-icon"></span>
+                  <span class="toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse sub-menu-bar" id="navbarSupportedContent">
+                  <ul id="nav" class="navbar-nav ml-auto">
+                    <li class="nav-item"><a class="page-scroll" href="#home">Home</a></li>
+                    <li class="nav-item"><a class="page-scroll" href="#services">Goals</a></li>
+                    <li class="nav-item"><a class="page-scroll" href="#about">About</a></li>
+                    <li class="nav-item"><a class="page-scroll" href="#donate">Donate</a></li>
+                    <li class="nav-item"><a class="page-scroll" href="#contact-section">Contact</a></li>
+                  </ul>
+
+                  <!-- Auth buttons (shown when NOT logged in) -->
+                  <div class="navbar-auth" id="authButtons">
+                    <button class="btn-login" onclick="openModal('loginModal')">Login</button>
+                    <button class="btn-register" onclick="openModal('registerModal')">Register</button>
+                  </div>
+
+                  <!-- User menu (shown when logged in) -->
+                  <div class="user-menu" id="userMenu">
+                    <span class="user-welcome">👋 Hello, <span id="loggedUsername"></span></span>
+                    <button class="btn-logout" onclick="logout()">Logout</button>
+                  </div>
+                </div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════
+         LOGIN MODAL
+    ═══════════════════════════════════════════ -->
+    <div class="modal-overlay" id="loginModal">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+        <h2>Welcome Back 👋</h2>
+        <p class="subtitle">Login to access your MY-E-Village account</p>
+        <div class="alert-msg" id="loginAlert"></div>
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="loginUsername" placeholder="Enter your username" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="Enter your password" />
+        </div>
+        <button class="btn-submit" id="loginBtn" onclick="handleLogin()">Login</button>
+        <div class="switch-link">
+          Don't have an account? <a onclick="switchModal('loginModal','registerModal')">Register here</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         REGISTER MODAL
+    ═══════════════════════════════════════════ -->
+    <div class="modal-overlay" id="registerModal">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('registerModal')">✕</button>
+        <h2>Create Account 🌾</h2>
+        <p class="subtitle">Join MY-E-Village and empower your community</p>
+        <div class="alert-msg" id="registerAlert"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="regFirst" placeholder="First name" />
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" id="regLast" placeholder="Last name" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="regUsername" placeholder="Choose a username" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="regEmail" placeholder="Your email address" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Role</label>
+            <select id="regRole">
+              <option value="citizen">Citizen</option>
+              <option value="farmer">Farmer</option>
+              <option value="teacher">Teacher</option>
+              <option value="doctor">Doctor</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Village</label>
+            <input type="text" id="regVillage" placeholder="Your village name" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="regPassword" placeholder="Min 8 characters" />
+        </div>
+        <button class="btn-submit" id="registerBtn" onclick="handleRegister()">Create Account</button>
+        <div class="switch-link">
+          Already have an account? <a onclick="switchModal('registerModal','loginModal')">Login here</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         HERO SECTION
+    ═══════════════════════════════════════════ -->
+    <section id="home" class="hero-section">
+      <div class="hero-shape">
+        <img src="assets/img/hero/image.png" alt="" class="shape">
+      </div>
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-lg-6">
+            <div class="hero-content">
+              <h1 class="wow fadeInUp" data-wow-delay=".2s">Welcome to <span>MY-E-Village</span></h1>
+              <p class="wow fadeInUp" data-wow-delay=".4s">
+                Empowering rural communities through digital connectivity, smart governance, and sustainable technology solutions for a better tomorrow.
+              </p>
+              <div style="display:flex; gap:14px; flex-wrap:wrap;">
+                <a href="#about" class="main-btn btn-hover wow fadeInUp" data-wow-delay=".6s">Explore More</a>
+                <button class="main-btn btn-hover wow fadeInUp" data-wow-delay=".7s" style="background:transparent; border:2px solid #f97316; color:#f97316;" onclick="openModal('registerModal')">Join Now</button>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="hero-img wow fadeInUp" data-wow-delay=".5s">
+              <img src="assets/img/hero/image.png" alt="">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SERVICES SECTION
+    ═══════════════════════════════════════════ -->
+    <section id="services" class="service-section pt-150">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-xl-6 col-lg-8">
+            <div class="section-title text-center mb-70">
+              <span class="wow fadeInUp" data-wow-delay=".2s">Our Vision</span>
+              <h1 class="wow fadeInUp" data-wow-delay=".4s">Smart Village Services</h1>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-4 col-md-6">
+            <div class="single-service wow fadeInUp" data-wow-delay=".2s">
+              <div class="icon"><img src="assets/img/service/government-svgrepo-com.svg" alt=""></div>
+              <div class="content">
+                <h3>E-Governance</h3>
+                <p>Digital access to administrative records, certificates, and government applications from home.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6">
+            <div class="single-service wow fadeInUp" data-wow-delay=".4s">
+              <div class="icon"><img src="assets/img/service/health-care-love-svgrepo-com.svg" alt=""></div>
+              <div class="content">
+                <h3>Health Care</h3>
+                <p>Connecting villagers to specialized healthcare advice and emergency services via tele-medicine.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6">
+            <div class="single-service wow fadeInUp" data-wow-delay=".6s">
+              <div class="icon"><img src="assets/img/service/file.svg" alt=""></div>
+              <div class="content">
+                <h3>Smart Education</h3>
+                <p>Bringing digital resources and online learning platforms to rural schools and students.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6">
+            <div class="single-service wow fadeInUp" data-wow-delay=".2s">
+              <div class="icon"><img src="assets/img/service/file (1).svg" alt=""></div>
+              <div class="content">
+                <h3>Digital Farming</h3>
+                <p>Real-time data for farmers regarding soil quality, market rates, and modern agriculture methods.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6">
+            <div class="single-service wow fadeInUp" data-wow-delay=".4s">
+              <div class="icon"><img src="assets/img/service/market-analysis-svgrepo-com.svg" alt=""></div>
+              <div class="content">
+                <h3>E-Market</h3>
+                <p>A marketplace for local artisans and farmers to sell their products directly to a global audience.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6">
+            <div class="single-service wow fadeInUp" data-wow-delay=".6s">
+              <div class="icon"><img src="assets/img/service/clean-energy-svgrepo-com.svg" alt=""></div>
+              <div class="content">
+                <h3>Clean Energy</h3>
+                <p>Implementing and monitoring solar power and sustainable energy projects for village growth.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         ABOUT SECTION
+    ═══════════════════════════════════════════ -->
+    <section id="about" class="about-section pt-150">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="about-img wow fadeInUp" data-wow-delay=".5s">
+              <img src="assets/img/about/image.png" alt="">
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="about-content">
+              <div class="section-title">
+                <span class="wow fadeInUp" data-wow-delay=".2s">About Us</span>
+                <h1 class="wow fadeInUp" data-wow-delay=".4s">Bridging the Rural-Urban Digital Divide</h1>
+                <p class="wow fadeInUp" data-wow-delay=".6s">MY-E-Village is a dedicated initiative aimed at transforming traditional villages into smart, connected hubs using the power of information technology.</p>
+              </div>
+              <div class="rating-meta d-flex align-items-center wow fadeInUp" data-wow-delay=".65s">
+                <h5>Impact Rating 4.8</h5>
+                <div class="rating">
+                  <i class="lni lni-star-filled"></i>
+                  <i class="lni lni-star-filled"></i>
+                  <i class="lni lni-star-filled"></i>
+                  <i class="lni lni-star-filled"></i>
+                  <i class="lni lni-star-filled"></i>
+                </div>
+              </div>
+              <div class="counter-up wow fadeInUp" data-wow-delay=".8s">
+                <div class="single-counter">
+                  <h3 id="secondo1" class="countup" cup-end="10" cup-append="+">10 </h3>
+                  <h5>Villages</h5>
+                </div>
+                <div class="single-counter position-relative">
+                  <h3 id="secondo2" class="countup" cup-end="234" cup-append="K+">234 </h3>
+                  <h5>Happy Citizens</h5>
+                </div>
+                <div class="single-counter">
+                  <h3 id="secondo3" class="countup" cup-end="34" cup-append="+">34 </h3>
+                  <h5>Partners</h5>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         DONATION SECTION
+    ═══════════════════════════════════════════ -->
+    <section id="donate" style="padding: 80px 0; background: #f5f7fa;">
+      <div class="container">
+        <div class="section-header">
+          <span>Support Us</span>
+          <h2>Make a Donation</h2>
+          <p>Your contribution directly empowers rural communities. Every rupee makes a difference.</p>
+        </div>
+
+        <!-- Quick amount selection -->
+        <div class="donate-cards">
+          <div class="donate-card selected" onclick="selectAmount(this, 100)">
+            <div class="amount">₹100</div>
+            <div class="label">Supporter</div>
+          </div>
+          <div class="donate-card" onclick="selectAmount(this, 500)">
+            <div class="amount">₹500</div>
+            <div class="label">Helper</div>
+          </div>
+          <div class="donate-card" onclick="selectAmount(this, 1000)">
+            <div class="amount">₹1,000</div>
+            <div class="label">Champion</div>
+          </div>
+          <div class="donate-card" onclick="selectAmount(this, 5000)">
+            <div class="amount">₹5,000</div>
+            <div class="label">Hero</div>
+          </div>
+        </div>
+
+        <div class="donate-form-wrap">
+          <div class="alert-msg" id="donateAlert"></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Your Name</label>
+              <input type="text" id="donateName" placeholder="Full name" />
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="donateEmail" placeholder="your@email.com" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Amount (₹)</label>
+              <input type="number" id="donateAmount" value="100" min="1" placeholder="Enter amount" />
+            </div>
+            <div class="form-group">
+              <label>Purpose</label>
+              <select id="donatePurpose">
+                <option value="general">General Village Fund</option>
+                <option value="education">Smart Education</option>
+                <option value="healthcare">Health Care</option>
+                <option value="energy">Clean Energy</option>
+                <option value="farming">Digital Farming</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Message (optional)</label>
+            <input type="text" id="donateMessage" placeholder="A message of support..." />
+          </div>
+          <button class="btn-submit" id="donateBtn" onclick="handleDonation()">💛 Donate Now</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         CONTACT SECTION
+    ═══════════════════════════════════════════ -->
+    <section id="contact-section" style="padding: 80px 0; background: #fff;">
+      <div class="container">
+        <div class="section-header">
+          <span>Get In Touch</span>
+          <h2>Contact Us</h2>
+          <p>Have a question or need help? Send us a message and we'll get back to you shortly.</p>
+        </div>
+        <div class="contact-form-wrap">
+          <div class="alert-msg" id="contactAlert"></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Your Name</label>
+              <input type="text" id="contactName" placeholder="Full name" />
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="contactEmail" placeholder="your@email.com" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Phone (optional)</label>
+              <input type="text" id="contactPhone" placeholder="+91 00000 00000" />
+            </div>
+            <div class="form-group">
+              <label>Subject</label>
+              <input type="text" id="contactSubject" placeholder="How can we help?" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <textarea id="contactMessage" placeholder="Write your message here..."></textarea>
+          </div>
+          <button class="btn-submit" id="contactBtn" onclick="handleContact()">📨 Send Message</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         FOOTER
+    ═══════════════════════════════════════════ -->
+    <footer id="footer" class="footer pt-100 pb-70">
+      <div class="footer-shape">
+        <img src="assets/img/footer/footer-left.svg" alt="" class="shape shape-1">
+        <img src="assets/img/footer/footer-right.svg" alt="" class="shape shape-2">
+      </div>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-3 col-md-6">
+            <div class="footer-widget wow fadeInUp" data-wow-delay=".2s">
+              <div class="logo">
+                <a href="/"><img src="assets/img/logo/image.png" alt="logo" style="max-width: 150px;"></a>
+              </div>
+              <p class="mt-4">Transforming rural lives through the power of digital connectivity.</p>
+            </div>
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <div class="footer-widget wow fadeInUp" data-wow-delay=".4s">
+              <h3>Quick Links</h3>
+              <ul class="links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#services">Goals</a></li>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#contact-section">Contact</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <div class="footer-widget wow fadeInUp" data-wow-delay=".6s">
+              <h3>Privacy</h3>
+              <ul class="links">
+                <li><a href="#">Terms of Service</a></li>
+                <li><a href="#">Privacy Policy</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <div class="footer-widget wow fadeInUp" data-wow-delay=".8s">
+              <h3>Support</h3>
+              <ul class="links">
+                <li><a href="#contact-section">Help Desk</a></li>
+                <li><a href="#">Community</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-5">
+          <div class="col-12 text-center">
+            <p>© 2026 MY-E-Village. All rights reserved.</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <a href="#" class="scroll-top btn-hover">
+      <i class="lni lni-chevron-up"></i>
+    </a>
+
+    <script src="assets/js/bootstrap.5.0.0.alpha-2-min.js"></script>
+    <script src="assets/js/count-up.min.js"></script>
+    <script src="assets/js/wow.min.js"></script>
+    <script src="assets/js/main.js"></script>
+
+    <!-- ═══════════════════════════════════════════
+         BACKEND INTEGRATION JAVASCRIPT
+    ═══════════════════════════════════════════ -->
+    <script>
+      // ─── Token helpers ─────────────────────────────
+      const getToken   = () => localStorage.getItem('access_token');
+      const getUsername = () => localStorage.getItem('username');
+      const setAuth    = (token, username) => {
+        localStorage.setItem('access_token', token);
+        localStorage.setItem('username', username);
+      };
+      const clearAuth  = () => {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('username');
+      };
+
+      // ─── Update navbar UI based on login state ───────
+      function updateNavbar() {
+        const token = getToken();
+        const authBtns = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        const loggedName = document.getElementById('loggedUsername');
+        if (token) {
+          authBtns.style.display = 'none';
+          userMenu.style.display = 'flex';
+          loggedName.textContent = getUsername();
+        } else {
+          authBtns.style.display = 'flex';
+          userMenu.style.display = 'none';
+        }
+      }
+
+      // ─── Modal helpers ───────────────────────────────
+      function openModal(id) {
+        document.getElementById(id).classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+        document.body.style.overflow = '';
+        clearAlert(id === 'loginModal' ? 'loginAlert' : 'registerAlert');
+      }
+      function switchModal(from, to) {
+        closeModal(from);
+        setTimeout(() => openModal(to), 200);
+      }
+      // Close modal on overlay click
+      document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', function(e) {
+          if (e.target === this) closeModal(this.id);
+        });
+      });
+
+      // ─── Alert helpers ───────────────────────────────
+      function showAlert(id, message, type) {
+        const el = document.getElementById(id);
+        el.textContent = message;
+        el.className = 'alert-msg ' + type;
+      }
+      function clearAlert(id) {
+        const el = document.getElementById(id);
+        el.textContent = '';
+        el.className = 'alert-msg';
+      }
+
+      // ─── LOGIN ───────────────────────────────────────
+      async function handleLogin() {
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+        if (!username || !password) {
+          showAlert('loginAlert', 'Please fill in all fields.', 'error'); return;
+        }
+        const btn = document.getElementById('loginBtn');
+        btn.disabled = true; btn.textContent = 'Logging in...';
+        try {
+          const res = await fetch('/api/auth/login/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            setAuth(data.access, data.username);
+            showAlert('loginAlert', '✅ Login successful! Welcome back.', 'success');
+            setTimeout(() => { closeModal('loginModal'); updateNavbar(); }, 1200);
+          } else {
+            showAlert('loginAlert', data.error || 'Invalid username or password.', 'error');
+          }
+        } catch (e) {
+          showAlert('loginAlert', 'Network error. Please try again.', 'error');
+        }
+        btn.disabled = false; btn.textContent = 'Login';
+      }
+
+      // ─── REGISTER ────────────────────────────────────
+      async function handleRegister() {
+        const username   = document.getElementById('regUsername').value.trim();
+        const email      = document.getElementById('regEmail').value.trim();
+        const password   = document.getElementById('regPassword').value.trim();
+        const first_name = document.getElementById('regFirst').value.trim();
+        const last_name  = document.getElementById('regLast').value.trim();
+        const role       = document.getElementById('regRole').value;
+        const village    = document.getElementById('regVillage').value.trim();
+
+        if (!username || !email || !password) {
+          showAlert('registerAlert', 'Username, email and password are required.', 'error'); return;
+        }
+        if (password.length < 8) {
+          showAlert('registerAlert', 'Password must be at least 8 characters.', 'error'); return;
+        }
+
+        const btn = document.getElementById('registerBtn');
+        btn.disabled = true; btn.textContent = 'Creating account...';
+        try {
+          const res = await fetch('/api/auth/register/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password, first_name, last_name, role, village })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            setAuth(data.access, username);
+            showAlert('registerAlert', '🎉 Account created! Welcome to MY-E-Village!', 'success');
+            setTimeout(() => { closeModal('registerModal'); updateNavbar(); }, 1400);
+          } else {
+            const errMsg = Object.values(data).flat().join(' ');
+            showAlert('registerAlert', errMsg || 'Registration failed.', 'error');
+          }
+        } catch (e) {
+          showAlert('registerAlert', 'Network error. Please try again.', 'error');
+        }
+        btn.disabled = false; btn.textContent = 'Create Account';
+      }
+
+      // ─── LOGOUT ──────────────────────────────────────
+      function logout() {
+        clearAuth();
+        updateNavbar();
+      }
+
+      // ─── DONATION quick amount select ─────────────────
+      function selectAmount(card, amount) {
+        document.querySelectorAll('.donate-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        document.getElementById('donateAmount').value = amount;
+      }
+
+      // ─── DONATION submit ──────────────────────────────
+      async function handleDonation() {
+        const donor_name  = document.getElementById('donateName').value.trim();
+        const donor_email = document.getElementById('donateEmail').value.trim();
+        const amount      = document.getElementById('donateAmount').value.trim();
+        const purpose     = document.getElementById('donatePurpose').value;
+        const message     = document.getElementById('donateMessage').value.trim();
+
+        if (!donor_name || !donor_email || !amount) {
+          showAlert('donateAlert', 'Please fill in your name, email and amount.', 'error'); return;
+        }
+
+        const btn = document.getElementById('donateBtn');
+        btn.disabled = true; btn.textContent = 'Processing...';
+
+        const headers = { 'Content-Type': 'application/json' };
+        if (getToken()) headers['Authorization'] = 'Bearer ' + getToken();
+
+        try {
+          const res = await fetch('/api/donations/', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ donor_name, donor_email, amount, purpose, message })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            showAlert('donateAlert', '💛 Thank you for your generous donation!', 'success');
+            document.getElementById('donateName').value = '';
+            document.getElementById('donateEmail').value = '';
+            document.getElementById('donateAmount').value = '100';
+            document.getElementById('donateMessage').value = '';
+          } else {
+            const errMsg = Object.values(data).flat().join(' ');
+            showAlert('donateAlert', errMsg || 'Donation failed. Please try again.', 'error');
+          }
+        } catch (e) {
+          showAlert('donateAlert', 'Network error. Please try again.', 'error');
+        }
+        btn.disabled = false; btn.textContent = '💛 Donate Now';
+      }
+
+      // ─── CONTACT submit ───────────────────────────────
+      async function handleContact() {
+        const name    = document.getElementById('contactName').value.trim();
+        const email   = document.getElementById('contactEmail').value.trim();
+        const phone   = document.getElementById('contactPhone').value.trim();
+        const subject = document.getElementById('contactSubject').value.trim();
+        const message = document.getElementById('contactMessage').value.trim();
+
+        if (!name || !email || !subject || !message) {
+          showAlert('contactAlert', 'Please fill in all required fields.', 'error'); return;
+        }
+
+        const btn = document.getElementById('contactBtn');
+        btn.disabled = true; btn.textContent = 'Sending...';
+        try {
+          const res = await fetch('/api/contact/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, phone, subject, message })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            showAlert('contactAlert', '✅ Message sent! We will get back to you soon.', 'success');
+            document.getElementById('contactName').value = '';
+            document.getElementById('contactEmail').value = '';
+            document.getElementById('contactPhone').value = '';
+            document.getElementById('contactSubject').value = '';
+            document.getElementById('contactMessage').value = '';
+          } else {
+            const errMsg = Object.values(data).flat().join(' ');
+            showAlert('contactAlert', errMsg || 'Failed to send message.', 'error');
+          }
+        } catch (e) {
+          showAlert('contactAlert', 'Network error. Please try again.', 'error');
+        }
+        btn.disabled = false; btn.textContent = '📨 Send Message';
+      }
+
+      // ─── On page load ─────────────────────────────────
+      updateNavbar();
+    </script>
+  </body>
+</html>
